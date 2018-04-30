@@ -6,13 +6,52 @@ import "third-party/brainbrowser-2.5.5/brainbrowser.volume-viewer.min.js";
 class VolumeViewer extends Component {
   constructor(props) {
     super(props);
+    this.state = { loading: false };
     this.divRef = React.createRef();
     this.viewer = null;
   }
-  componentDidMount() {}
+  componentDidMount() {
+    BrainBrowser.VolumeViewer.start(this.divRef.current, viewer => {
+      this.viewer = viewer;
+      viewer.addEventListener("volumesloaded", () => {
+        this.setState({ loading: false });
+      });
+      this.updateViewerWithProps(this.props);
+      viewer.render();
+    });
+  }
+  componentWillReceiveProps(nextProps) {
+    this.updateViewerWithProps(nextProps);
+  }
+  updateViewerWithProps(props) {
+    if (!this.viewer) {
+      return;
+    }
+    let overlay;
+    if (props.overlay) {
+      overlay = {};
+    }
+    const { volumes, colormap, cursorColor } = props;
+    this.viewer.loadDefaultColorMapFromURL(colormap, cursorColor);
+    this.viewer.clearVolumes();
+    this.viewer.loadVolumes({ volumes, overlay });
+    this.setState({ loading: volumes.length > 0 });
+  }
   render() {
-    return <div ref={this.divRef} />;
+    return (
+      <div>
+        {this.state.loading ? <this.props.renderLoading /> : null}
+        <div ref={this.divRef} />
+      </div>
+    );
   }
 }
+
+VolumeViewer.defaultProps = {
+  volumes: [],
+  cursorColor: "#FF0000",
+  colormap: "data/color-maps/gray-scale.txt",
+  renderLoading: () => <div>"Loading..."</div>
+};
 
 export default VolumeViewer;
