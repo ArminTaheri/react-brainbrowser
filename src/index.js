@@ -19,5 +19,35 @@ const testData = [
   }
 ];
 
-ReactDOM.render(<App volumes={testData} />, document.getElementById("root"));
+const colorMaps = [
+  {
+    name: "blue",
+    url: "data/color-maps/blue.txt"
+  },
+  {
+    name: "gray-scale",
+    url: "data/color-maps/gray-scale.txt"
+  },
+  {
+    name: "green",
+    url: "data/color-maps/green.txt"
+  },
+  {
+    name: "spectral-brainview",
+    url: "data/color-maps/spectral-brainview.txt"
+  },
+  {
+    name: "spectral",
+    url: "data/color-maps/spectral.txt"
+  },
+  {
+    name: "thermal",
+    url: "data/color-maps/thermal.txt"
+  }
+];
+
+ReactDOM.render(
+  <App volumes={testData} colorMaps={colorMaps} />,
+  document.getElementById("root")
+);
 registerServiceWorker();

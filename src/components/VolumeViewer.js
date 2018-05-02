@@ -15,6 +15,16 @@ class VolumeViewer extends Component {
       this.viewer = viewer;
       viewer.addEventListener("volumesloaded", () => {
         this.setState({ loading: false });
+        this.props.volumes.forEach((volume, i) => {
+          console.log(volume, i);
+          if (volume.colormap) {
+            viewer.loadVolumeColorMapFromURL(i, volume.colormap.url);
+          }
+        });
+        setTimeout(() => {
+          viewer.redrawVolumes();
+          viewer.resetDisplays();
+        }, 50);
       });
       this.updateViewerWithProps(this.props);
       viewer.render();

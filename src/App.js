@@ -1,16 +1,27 @@
 import React, { Component } from "react";
-import { Grid, Row, Table } from "react-bootstrap";
+import { Grid, Row, Table, MenuItem, DropdownButton } from "react-bootstrap";
 import FontAwesomeIcon from "@fortawesome/react-fontawesome";
 import faArrowDown from "@fortawesome/fontawesome-free-solid/faArrowDown";
 import VolumeViewer from "./components/VolumeViewer";
 import "./css/bootstrap.min.css";
 import "./App.css";
 
+const ColormapDropdown = ({ index, activeColorMap, colorMaps, onSelect }) => (
+  <DropdownButton id={`colormap-dropdown-${index}`} title={activeColorMap.name}>
+    <MenuItem onClick={() => onSelect(null)}>none</MenuItem>
+    {colorMaps.map((colorMap, index) => (
+      <MenuItem key={index} onClick={() => onSelect(colorMap)}>
+        {colorMap.name}
+      </MenuItem>
+    ))}
+  </DropdownButton>
+);
+
 // Add Bootstrap stuff
 class App extends Component {
   constructor(props) {
     super(props);
-    this.state = { filtered: [], overlay: true };
+    this.state = { filtered: [], colorMaps: {}, overlay: true };
   }
   toggleVolume(volume) {
     const filtered = this.state.filtered.filter(v => v !== volume);
@@ -20,9 +31,14 @@ class App extends Component {
     }
     this.setState({ filtered: filtered.concat(volume) });
   }
+  setColorMap(index, colorMap) {
+    const { colorMaps } = this.state;
+    Object.assign(colorMaps, { [index]: colorMap });
+    this.setState({ colorMaps });
+  }
   render() {
-    const { filtered, overlay } = this.state;
-    const { volumes } = this.props;
+    const { filtered, overlay, colorMaps: stateColorMaps } = this.state;
+    const { volumes, colorMaps } = this.props;
     return (
       <div className="App">
         <Grid>
@@ -31,6 +47,7 @@ class App extends Component {
               <thead>
                 <tr>
                   <th>Show</th>
+                  <th>Colormap</th>
                   <th>Name</th>
                   <th>Type</th>
                 </tr>
@@ -45,6 +62,14 @@ class App extends Component {
                         onClick={() => this.toggleVolume(volume)}
                       />
                     </td>
+                    <td>
+                      <ColormapDropdown
+                        index={i}
+                        activeColorMap={stateColorMaps[i] || { name: "none" }}
+                        colorMaps={colorMaps}
+                        onSelect={colorMap => this.setColorMap(i, colorMap)}
+                      />
+                    </td>
                     <td>{volume.name}</td>
                     <td>{volume.type || "unknown"}</td>
                   </tr>
@@ -57,8 +82,8 @@ class App extends Component {
               <input
                 type="checkbox"
                 checked={overlay}
-                onClick={() => {
-                  this.setState({ overlay: !overlay });
+                onChange={event => {
+                  this.setState({ overlay: event.target.checked });
                 }}
               />
               Overlay Volumes?
@@ -78,7 +103,13 @@ class App extends Component {
             </div>
           </Row>
           <Row>
-            <VolumeViewer volumes={filtered} overlay={overlay} />
+            <VolumeViewer
+              volumes={filtered.map((volume, i) => ({
+                colormap: stateColorMaps[i],
+                ...volume
+              }))}
+              overlay={overlay}
+            />
           </Row>
         </Grid>
       </div>
